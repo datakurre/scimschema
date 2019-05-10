@@ -1,32 +1,50 @@
-from .._model.scim_exceptions import AggregatedScimMultValueAttributeValidationExceptions
+# -*- coding: utf-8 -*-
+from scimschema._model.scim_exceptions import AggregatedScimMultValueAttributeValidationExceptions
 
 
 class ScimResponse(dict):
+    def __init__(
+            self,
+            data,
+            core_schema_definitions,
+            extension_schema_definitions,
+    ):
 
-    def __init__(self, data, core_schema_definitions, extension_schema_definitions):
-
-        super().__init__()
+        super(ScimResponse, self).__init__()
         for key in data.keys():
             self[key] = data[key]
 
-        self._core_meta_schemas, self._extension_schema_definitions = self._get_meta_schemas(core_schema_definitions, extension_schema_definitions)
+        self._core_meta_schemas, self._extension_schema_definitions = self._get_meta_schemas(
+            core_schema_definitions,
+            extension_schema_definitions,
+        )
         if len(self._core_meta_schemas) != 1:
             raise AssertionError(
-                "Response must specify exactly one core schema - {}".format(", ".join([s.id for s in self._core_meta_schemas]))
+                "Response must specify exactly one core schema - {}".format(
+                    ", ".join([s.id for s in self._core_meta_schemas])
+                )
             )
 
-    def _get_meta_schemas(self, core_schema_definitions, extension_schema_definitions):
+    def _get_meta_schemas(
+            self,
+            core_schema_definitions,
+            extension_schema_definitions,
+    ):
         schema_names = self.get("schemas")
 
         if schema_names is None or len(schema_names) == 0:
             raise AssertionError("Response has no specified schema")
 
         core_meta_schemas = [
-            core_schema_definitions[schema_name] for schema_name in schema_names if "extension" not in schema_name
+            core_schema_definitions[schema_name]
+            for schema_name in schema_names
+            if "extension" not in schema_name
         ]
 
         extension_meta_schemas = [
-            extension_schema_definitions[schema_name] for schema_name in schema_names if "extension" in schema_name
+            extension_schema_definitions[schema_name]
+            for schema_name in schema_names
+            if "extension" in schema_name
         ]
         return core_meta_schemas, extension_meta_schemas
 
@@ -48,6 +66,5 @@ class ScimResponse(dict):
 
         if len(exceptions) > 0:
             raise AggregatedScimMultValueAttributeValidationExceptions(
-                location="Scim response",
-                exceptions=exceptions
+                location="Scim response", exceptions=exceptions
             )

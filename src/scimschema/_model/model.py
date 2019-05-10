@@ -1,7 +1,16 @@
-import re
+# -*- coding: utf-8 -*-
+from scimschema._model import scim_exceptions
+from scimschema._model.attribute import AttributeFactory
+
 import json
-from .attribute import AttributeFactory
-from . import scim_exceptions
+import re
+import sys
+
+
+if sys.version_info[0] > 2:
+    text_type = str
+else:
+    text_type = unicode
 
 
 class Model(object):
@@ -21,7 +30,9 @@ class Model(object):
 
         if attributes:
             self.attributes = [
-                AttributeFactory().create(d=d, locator_path=[self.id], is_parent_multi_valued=False) for d in attributes
+                AttributeFactory().create(
+                    d=d, locator_path=[self.id], is_parent_multi_valued=False
+                ) for d in attributes
             ]
 
         exceptions = []
@@ -31,7 +42,9 @@ class Model(object):
             exceptions.append(ae)
 
         if schema_data != {}:
-            e = AssertionError("Unexpected properties found: {}".format(schema_data.keys()))
+            e = AssertionError(
+                "Unexpected properties found: {}".format(schema_data.keys())
+            )
             exceptions.append(e)
 
         if len(exceptions) > 0:
@@ -63,7 +76,9 @@ class Model(object):
             exceptions.append(ae)
 
         if len(exceptions) > 0:
-            raise scim_exceptions.AggregatedScimSchemaExceptions(self.id, exceptions)
+            raise scim_exceptions.AggregatedScimSchemaExceptions(
+                self.id, exceptions
+            )
 
     def _validate_schema_id(self):
         if self.id is None:
@@ -85,7 +100,7 @@ class Model(object):
                 id=self.id,
                 property_name="name",
                 expected="a valid name - "
-                         "must be ALPHA * {{nameChar}} where nameChar   = \"$\" / \"-\" / \"_\" / DIGIT / ALPHA",
+                "must be ALPHA * {{nameChar}} where nameChar   = \"$\" / \"-\" / \"_\" / DIGIT / ALPHA",
                 actual=self.name
             )
 
@@ -93,7 +108,8 @@ class Model(object):
         if self.description is None:
             return
 
-        if not isinstance(self.description, str):
+        if not (isinstance(self.description, str)
+                or isinstance(self.description, text_type)):
             raise scim_exceptions.ModelInvalidPropertyException(
                 id=self.id,
                 property_name="description",
@@ -120,19 +136,22 @@ class Model(object):
 
 
 class MetaServiceProviderSchema(Model):
-
     def _validate_schema_name(self):
-        if self.name is None or not bool(re.match(self.name, '^[\w]*(\$|\-|_|\d|\w)$')):
+        if self.name is None or not bool(re.match(self.name,
+                                                  '^[\w]*(\$|\-|_|\d|\w)$')):
             raise scim_exceptions.ModelInvalidPropertyException(
                 id=self.id,
                 property_name="name",
                 expected="meta schema: {}-{}- name must be "
-                         "LPHA * {nameChar} where nameChar   = \"$\" / \"-\" / \"_\" / DIGIT / ALPHA",
+                "LPHA * {nameChar} where nameChar   = \"$\" / \"-\" / \"_\" / DIGIT / ALPHA",
                 actual=self.name
             )
 
     def _validate_schema_description(self):
-        if self.description is None or not isinstance(self.description, str):
+        if self.description is None or not (
+            isinstance(self.description, str)
+            or isinstance(self.description, text_type)
+        ):
             raise scim_exceptions.ModelInvalidPropertyException(
                 id=self.id,
                 property_name="description",

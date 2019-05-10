@@ -1,10 +1,14 @@
-from .core_schemas import load_dict as _load_dict
-from . import core_schemas
-from ._model.schema_response import ScimResponse
-from ._model import scim_exceptions, model, attribute
+from scimschema import core_schemas
+from scimschema._model import attribute
+from scimschema._model import model
+from scimschema._model import scim_exceptions
+from scimschema._model.schema_response import ScimResponse
+from scimschema.core_schemas import load_dict as _load_dict
 
 
-def validate(data, extension_schema_definitions):
+def validate(data, extension_schema_definitions=None):
+    if extension_schema_definitions is None:
+        extension_schema_definitions = {}
     ScimResponse(
         data=data,
         core_schema_definitions=core_schemas.schema,

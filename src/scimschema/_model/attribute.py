@@ -1,23 +1,42 @@
+# -*- coding: utf-8 -*-
+from datetime import datetime
+from scimschema._model import scim_exceptions
+
 import collections
 import re
-from datetime import datetime
-from . import scim_exceptions
+import sys
 
 
-class AttributeFactory:
+if sys.version_info[0] > 2:
+    text_type = str
+else:
+    text_type = unicode
 
+
+class AttributeFactory(object):
     @staticmethod
-    def create(d, locator_path, attribute_type=None, is_parent_multi_valued=False, is_parent_complex=False):
-        locator_path = locator_path.copy() if isinstance(locator_path, list) else [locator_path]
+    def create(
+            d,
+            locator_path,
+            attribute_type=None,
+            is_parent_multi_valued=False,
+            is_parent_complex=False
+    ):
+        if isinstance(locator_path, list):
+            locator_path = locator_path[:]
+        else:
+            locator_path = [locator_path]
         multi_valued = d.get("multiValued", False)
         if multi_valued and attribute_type is None:
             return MultiValuedAttribute(
                 d=d,
                 locator_path=locator_path,
                 is_parent_multi_valued=is_parent_multi_valued,
-                is_parent_complex=is_parent_complex
+                is_parent_complex=is_parent_complex,
             )
-        attribute_type = d.get("type", "string") if attribute_type is None else attribute_type
+        attribute_type = d.get(
+            "type", "string"
+        ) if attribute_type is None else attribute_type
         attribute_factory = {
             "binary": BinaryAttribute,
             "boolean": BooleanAttribute,
@@ -28,8 +47,10 @@ class AttributeFactory:
         }
         if attribute_type not in attribute_factory.keys():
             raise AssertionError(
-                "Attribute type '{}' (path: {}) is not a valid type - expected on of these: ({})".format(
-                    attribute_type, locator_path, ", ".join(attribute_factory.keys())
+                "Attribute type '{}' (path: {}) is not a valid type - expected on of these: ({})"
+                .format(
+                    attribute_type, locator_path,
+                    ", ".join(attribute_factory.keys())
                 )
             )
         attribute_class = attribute_factory[attribute_type]
@@ -41,11 +62,17 @@ class AttributeFactory:
         )
 
 
-class Attribute:
+class Attribute(object):
     _accepted_case_exact_value = {True, False}
     _accepted_uniqueness_value = {"none", "server", "global"}
 
-    def __init__(self, d, locator_path, is_parent_multi_valued=False, is_parent_complex=False):
+    def __init__(
+            self,
+            d,
+            locator_path,
+            is_parent_multi_valued=False,
+            is_parent_complex=False
+    ):
         # default values see - https://tools.ietf.org/html/rfc7643#section-2.2
         # Characteristics # https://tools.ietf.org/html/rfc7643#section-7
         self.__d = d.copy() if not hasattr(self, "__d") is None else self.__d
@@ -66,7 +93,9 @@ class Attribute:
         self.mutability = d.pop("mutability", "readWrite")
         self.returned = d.pop("returned", "default")
         self.uniqueness = d.pop("uniqueness", "none")
-        self.multiValued = d.pop("multiValued", False)  # todo confirm default is False?
+        self.multiValued = d.pop(
+            "multiValued", False
+        )  # todo confirm default is False?
         self._d = d
 
     # https://tools.ietf.org/html/rfc7643#section-7
@@ -86,7 +115,8 @@ class Attribute:
         msg = "valid name e.g. must be ALPHA * {{nameChar}} where nameChar   = \"$\" / \"-\" / \"_\" / DIGIT / ALPHA"
         # ^[a-zA-Z] - starts with ALPHA 0...many
         # (\$|\-|_|\w)$ - ends with $ - _ alphanumeric
-        if self.name is None or not bool(re.match('^[a-zA-Z](\$|-|_|\w)*$', self.name)):
+        if self.name is None or not bool(re.match('^[a-zA-Z](\$|-|_|\w)*$',
+                                                  self.name)):
             raise scim_exceptions.ModelAttributeCharacteristicNotAllowedException(
                 locator_path=self._locator_path,
                 attribute_name="name",
@@ -104,13 +134,13 @@ class Attribute:
             )
 
     def _validate_schema_canonical_values(self):
-        if self.canonicalValues is not None and not isinstance(self.canonicalValues, list):
+        if self.canonicalValues is not None and not isinstance(
+                self.canonicalValues, list):
             raise scim_exceptions.ModelAttributeCharacteristicNotAllowedException(
                 locator_path=self._locator_path,
                 attribute_name="canonicalValues",
                 expected="none or valid list",
                 actual=self.canonicalValues
-
             )
 
     def _validate_schema_case_exact(self):
@@ -153,7 +183,8 @@ class Attribute:
             )
 
     def _validate_schema_type(self):
-        if not isinstance(self.type, str):
+        if not (isinstance(self.type, str)
+                or isinstance(self.type, text_type)):
             raise scim_exceptions.ModelAttributeCharacteristicNotAllowedException(
                 locator_path=self._locator_path,
                 attribute_name="type",
@@ -191,12 +222,15 @@ class Attribute:
                 scim_exceptions.ModelAttributeUnknownPropertyException(
                     attribute_name=self.name,
                     locator=self._locator_path,
-                    info="SCIM Schema parser does not recognise keys: '{}'".format(self._d.keys())
+                    info="SCIM Schema parser does not recognise keys: '{}'".
+                    format(self._d.keys())
                 )
             )
 
         if len(exceptions) > 0:
-            raise scim_exceptions.AggregatedScimSchemaExceptions(location=self._locator_path, exceptions=exceptions)
+            raise scim_exceptions.AggregatedScimSchemaExceptions(
+                location=self._locator_path, exceptions=exceptions
+            )
 
     @staticmethod
     def _get_significant_value(d):
@@ -206,10 +240,14 @@ class Attribute:
         try:
             return d.pop(self.name)
         except KeyError:
-            raise scim_exceptions.ScimAttributeValueNotFoundException(d, self._locator_path, self.name, self.multiValued)
+            raise scim_exceptions.ScimAttributeValueNotFoundException(
+                d, self._locator_path, self.name, self.multiValued
+            )
 
     def _validate(self, value):
-        raise NotImplementedError("Abstract class Attribute does not have validate method - use a concrete Class")
+        raise NotImplementedError(
+            "Abstract class Attribute does not have validate method - use a concrete Class"
+        )
 
     def validate(self, d):
         try:
@@ -232,7 +270,8 @@ class BinaryAttribute(Attribute):
 
     def _validate(self, value):
         # todo - there is no proper way to know the different between a string and a binary
-        if not (isinstance(value, str)):
+        if not (isinstance(value, str)
+                or isinstance(value, text_type)):
             raise scim_exceptions.ScimAttributeInvalidTypeException(
                 expected=self._d,
                 locator=self._locator_path,
@@ -285,11 +324,8 @@ class DecimalAttribute(Attribute):
 
     def _validate(self, value):
         pos_period = str(value).index('.')
-        if not (
-                value and
-                isinstance(value, float) and
-                not pos_period >= 1 and len(value) - pos_period >= 1
-        ):
+        if not (value and isinstance(value, float) and not pos_period >= 1
+                and len(value) - pos_period >= 1):
             type_description = "must be a real number with at least one digit to the left and right of the period"
             raise scim_exceptions.ScimAttributeInvalidTypeException(
                 expected=self._d,
@@ -310,7 +346,8 @@ class IntegerAttribute(Attribute):
     _accepted_case_exact_value = {True, False}
 
     def _validate(self, value):
-        if not (value and not isinstance(value, bool) and isinstance(value, int)):
+        if not (value and not isinstance(value, bool)
+                and isinstance(value, int)):
             raise scim_exceptions.ScimAttributeInvalidTypeException(
                 expected=self._d,
                 locator=self._locator_path,
@@ -334,11 +371,17 @@ class ReferenceAttribute(Attribute):
         if self.name == "$ref":
             return
 
-        super()._validate_schema_name()
+        super(ReferenceAttribute, self)._validate_schema_name()
 
-    def __init__(self, d, locator_path, is_parent_multi_valued=False, is_parent_complex=False):
+    def __init__(
+            self,
+            d,
+            locator_path,
+            is_parent_multi_valued=False,
+            is_parent_complex=False
+    ):
         self.referenceTypes = d.pop("referenceTypes", None)
-        super().__init__(
+        super(ReferenceAttribute, self).__init__(
             d=d,
             locator_path=locator_path,
             is_parent_multi_valued=is_parent_multi_valued,
@@ -346,7 +389,8 @@ class ReferenceAttribute(Attribute):
         )
 
     def _validate(self, value):
-        if not (isinstance(value, str)):
+        if not (isinstance(value, str)
+                or isinstance(value, text_type)):
             raise scim_exceptions.ScimAttributeInvalidTypeException(
                 expected=self._d,
                 locator=self._locator_path,
@@ -361,7 +405,8 @@ class StringAttribute(Attribute):
     _link_reference = "https://tools.ietf.org/html/rfc7643#section-2.3.1"
 
     def _validate(self, value):
-        if not isinstance(value, str):
+        if not (isinstance(value, str)
+                or isinstance(value, text_type)):
             raise scim_exceptions.ScimAttributeInvalidTypeException(
                 expected=self._d,
                 locator=self._locator_path,
@@ -380,7 +425,9 @@ class StringAttribute(Attribute):
                     locator=self._locator_path,
                     value=value,
                     multi_value=self.multiValued,
-                    attribute_type="one of {}".format(" ,".join([v for v in adjusted_canonical_value]))
+                    attribute_type="one of {}".format(
+                        " ,".join([v for v in adjusted_canonical_value])
+                    )
                 )
 
 
@@ -388,9 +435,15 @@ class ComplexAttribute(Attribute):
 
     _link_reference = "https://tools.ietf.org/html/rfc7643#section-2.3.8"
 
-    def __init__(self, d, locator_path, is_parent_multi_valued=False, is_parent_complex=False):
+    def __init__(
+            self,
+            d,
+            locator_path,
+            is_parent_multi_valued=False,
+            is_parent_complex=False
+    ):
         self.__d = d.copy()
-        super().__init__(
+        super(ComplexAttribute, self).__init__(
             d=d,
             locator_path=locator_path,
             is_parent_multi_valued=is_parent_multi_valued,
@@ -409,7 +462,9 @@ class ComplexAttribute(Attribute):
         try:
             return d.get("value")
         except KeyError:
-            raise scim_exceptions.ScimAttributeValueNotFoundException(d, self._locator_path, self.name, self.multiValued)
+            raise scim_exceptions.ScimAttributeValueNotFoundException(
+                d, self._locator_path, self.name, self.multiValued
+            )
 
     def validate_schema(self):
         if self._is_parent_complex:
@@ -421,7 +476,7 @@ class ComplexAttribute(Attribute):
                 actual="complex type sub-attribute on a complex parent"
             )
 
-        super().validate_schema()
+        super(ComplexAttribute, self).validate_schema()
         exceptions = []
         for sa in self.subAttributes:
             try:
@@ -430,7 +485,9 @@ class ComplexAttribute(Attribute):
                 exceptions.append(ae)
 
         if len(exceptions) > 0:
-            scim_exceptions.AggregatedScimSchemaExceptions(self._locator_path, exceptions=exceptions)
+            scim_exceptions.AggregatedScimSchemaExceptions(
+                self._locator_path, exceptions=exceptions
+            )
 
     def _validate(self, value):
         exceptions = []
@@ -445,8 +502,7 @@ class ComplexAttribute(Attribute):
 
         if len(exceptions) > 0:
             raise scim_exceptions.AggregatedScimMultValueAttributeValidationExceptions(
-                self._locator_path,
-                exceptions=exceptions
+                self._locator_path, exceptions=exceptions
             )
 
 
@@ -454,7 +510,13 @@ class MultiValuedAttribute(Attribute):
 
     _link_reference = "https://tools.ietf.org/html/rfc7643#section-2.4"
 
-    def __init__(self, d, locator_path, is_parent_multi_valued=False, is_parent_complex=False):
+    def __init__(
+            self,
+            d,
+            locator_path,
+            is_parent_multi_valued=False,
+            is_parent_complex=False
+    ):
         self.__d = d.copy()
         self.type = d.get("type", None)  # shared attribute name to core
         self.primary = d.pop("primary", None)
@@ -469,7 +531,7 @@ class MultiValuedAttribute(Attribute):
                 is_parent_multi_valued=True,
                 is_parent_complex=self.type == "Complex"
             )
-        super().__init__(
+        super(MultiValuedAttribute, self).__init__(
             d=d,
             locator_path=locator_path,
             is_parent_multi_valued=is_parent_multi_valued,
@@ -480,7 +542,8 @@ class MultiValuedAttribute(Attribute):
         return self.element_attribute._get_value(d)
 
     def _validate_schema_type(self):
-        if not isinstance(self.type, str):
+        if not (isinstance(self.type, str)
+                or isinstance(self.type, text_type)):
             raise scim_exceptions.ModelAttributeCharacteristicNotAllowedException(
                 locator_path=self._locator_path,
                 attribute_name="type",
@@ -498,16 +561,18 @@ class MultiValuedAttribute(Attribute):
             )
 
     def _validate_schema_display(self):
-        if not isinstance(self.display, str):
+        if not (isinstance(self.display, str)
+                or isinstance(self.display, text_type)):
             raise scim_exceptions.ModelAttributeCharacteristicNotAllowedException(
                 locator_path=self.display,
                 attribute_name="ref",
                 expected="a human-readable name (string)",
                 actual=self.display
-        )
+            )
 
     def _validate_schema_ref(self):
-        if not isinstance(self.ref, str):
+        if not (isinstance(self.ref, str)
+                or isinstance(self.ref, text_type)):
             raise scim_exceptions.ModelAttributeCharacteristicNotAllowedException(
                 locator_path=self.display,
                 attribute_name="ref",
@@ -520,19 +585,31 @@ class MultiValuedAttribute(Attribute):
 
     def _validate_uniqueness(self, list_values):
         if self.uniqueness:
-            difference_values = [item for item, count in collections.Counter(list_values).items() if count > 1]
+            difference_values = [
+                item
+                for item, count in collections.Counter(list_values).items()
+                if count > 1
+            ]
             if len(set(difference_values)) > 0:
-                raise scim_exceptions.ScimAttributeDuplicateValueException(locator=self._locator_path, value=difference_values)
+                raise scim_exceptions.ScimAttributeDuplicateValueException(
+                    locator=self._locator_path, value=difference_values
+                )
 
     def _validate(self, value):
         if not isinstance(value, list):
-            raise scim_exceptions.ScimAttributeInvalidTypeException(self._d, self._locator_path, value, self.multiValued, "list")
+            raise scim_exceptions.ScimAttributeInvalidTypeException(
+                self._d, self._locator_path, value, self.multiValued, "list"
+            )
 
         adjusted_values = [
-            self.element_attribute._get_significant_value(v) for v in value if (not v == {} and v is not None)
+            self.element_attribute._get_significant_value(v)
+            for v in value
+            if (not v == {} and v is not None)
         ]
         if len(adjusted_values) == 0:
-            raise scim_exceptions.ScimAttributeValueNotFoundException(value, self._locator_path, self.name, self.multiValued)
+            raise scim_exceptions.ScimAttributeValueNotFoundException(
+                value, self._locator_path, self.name, self.multiValued
+            )
 
         exceptions = []
         try:
@@ -549,6 +626,8 @@ class MultiValuedAttribute(Attribute):
 
         if len(exceptions) > 0:
             raise scim_exceptions.AggregatedScimMultValueAttributeValidationExceptions(
-                location="{} at path ('{}')".format(self.name, self._locator_path),
+                location="{} at path ('{}')".format(
+                    self.name, self._locator_path
+                ),
                 exceptions=exceptions
             )
