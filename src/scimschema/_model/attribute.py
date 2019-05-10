@@ -270,14 +270,14 @@ class BinaryAttribute(Attribute):
 
     def _validate(self, value):
         # todo - there is no proper way to know the different between a string and a binary
-        if not (isinstance(value, str)
-                or isinstance(value, text_type)):
+        if not (isinstance(value, str) or isinstance(value, text_type)):
             raise scim_exceptions.ScimAttributeInvalidTypeException(
                 expected=self._d,
                 locator=self._locator_path,
                 value=value,
                 multi_value=self.multiValued,
-                attribute_type="binary"
+                attribute_type="binary",
+                reference=self._link_reference,
             )
 
 
@@ -294,7 +294,8 @@ class BooleanAttribute(Attribute):
                 locator=self._locator_path,
                 value=value,
                 multi_value=self.multiValued,
-                attribute_type="boolean"
+                attribute_type="boolean",
+                reference=self._link_reference,
             )
             # raise ValueError("{}-{} value: {} must be type boolean".format(self.id, self._locator_path, value))
 
@@ -312,7 +313,8 @@ class DatetimeAttribute(Attribute):
                 locator=self._locator_path,
                 value=value,
                 multi_value=self.multiValued,
-                attribute_type="datetime with format 2008-01-23T04:56:22Z"
+                attribute_type="datetime with format 2008-01-23T04:56:22Z",
+                reference=self._link_reference,
             )
             # raise ValueError("{}-{} value: {} must be type boolean".format(self.id, self._locator_path, value))
 
@@ -332,7 +334,8 @@ class DecimalAttribute(Attribute):
                 locator=self._locator_path,
                 value=value,
                 multi_value=self.multiValued,
-                attribute_type=type_description
+                attribute_type=type_description,
+                reference=self._link_reference,
             )
             # raise ValueError(
             #     "{}-{} value: {} must be a real number with at least one digit to the left and right of the period"
@@ -353,7 +356,8 @@ class IntegerAttribute(Attribute):
                 locator=self._locator_path,
                 value=value,
                 multi_value=self.multiValued,
-                attribute_type="integer"
+                attribute_type="integer",
+                reference=self._link_reference,
             )
             # raise ValueError("{}-{} value: {} must be an integer".format(self.id, self._locator_path, value))
 
@@ -389,14 +393,14 @@ class ReferenceAttribute(Attribute):
         )
 
     def _validate(self, value):
-        if not (isinstance(value, str)
-                or isinstance(value, text_type)):
+        if not (isinstance(value, str) or isinstance(value, text_type)):
             raise scim_exceptions.ScimAttributeInvalidTypeException(
                 expected=self._d,
                 locator=self._locator_path,
                 value=value,
                 multi_value=self.multiValued,
-                attribute_type="type reference"
+                attribute_type="type reference",
+                reference=self._link_reference,
             )
 
 
@@ -405,14 +409,14 @@ class StringAttribute(Attribute):
     _link_reference = "https://tools.ietf.org/html/rfc7643#section-2.3.1"
 
     def _validate(self, value):
-        if not (isinstance(value, str)
-                or isinstance(value, text_type)):
+        if not (isinstance(value, str) or isinstance(value, text_type)):
             raise scim_exceptions.ScimAttributeInvalidTypeException(
                 expected=self._d,
                 locator=self._locator_path,
                 value="({}){}".format(type(value).__name__, value),
                 multi_value=self.multiValued,
-                attribute_type="type string"
+                attribute_type="type string",
+                reference=self._link_reference,
             )
 
         if self.canonicalValues:
@@ -427,7 +431,8 @@ class StringAttribute(Attribute):
                     multi_value=self.multiValued,
                     attribute_type="one of {}".format(
                         " ,".join([v for v in adjusted_canonical_value])
-                    )
+                    ),
+                    reference=self._link_reference,
                 )
 
 
@@ -571,8 +576,7 @@ class MultiValuedAttribute(Attribute):
             )
 
     def _validate_schema_ref(self):
-        if not (isinstance(self.ref, str)
-                or isinstance(self.ref, text_type)):
+        if not (isinstance(self.ref, str) or isinstance(self.ref, text_type)):
             raise scim_exceptions.ModelAttributeCharacteristicNotAllowedException(
                 locator_path=self.display,
                 attribute_name="ref",
@@ -598,7 +602,12 @@ class MultiValuedAttribute(Attribute):
     def _validate(self, value):
         if not isinstance(value, list):
             raise scim_exceptions.ScimAttributeInvalidTypeException(
-                self._d, self._locator_path, value, self.multiValued, "list"
+                self._d,
+                self._locator_path,
+                value,
+                self.multiValued,
+                "list",
+                reference=self._link_reference,
             )
 
         adjusted_values = [

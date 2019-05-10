@@ -116,7 +116,7 @@ class ScimAttributeInvalidTypeException(AssertionError):
         path = "/".join(locator)
         mv_attribute = "Single-value attribute" if not multi_value else "Multi-value attribute"
         error_msg = "'{}: '{}' (at path: {}) is expected to be '{}' (see: {})"\
-            .format(mv_attribute, value, path, attribute_type, expected, reference)
+            .format(mv_attribute, value, path, attribute_type, reference)
         if not sub_attributes_exceptions:
             super(ScimAttributeInvalidTypeException,
                   self).__init__(sub_attributes_exceptions, error_msg)
