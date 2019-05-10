@@ -32,8 +32,8 @@ def test_default_meta_attribute():
     exception_msg = str(expected_exception)
     count_msg = grep_exception_counts(exception_msg)
     assert re.search(re.compile("2 aggregated exceptions found"), exception_msg), "Expected 2 aggregated exceptions found but got '{}'".format(count_msg)
-    assert re.search(re.compile("'_userName'] and has 'name' property which must be valid name"), exception_msg)
-    assert re.search(re.compile("'_userName'] and has 'mutability' property which must be .* but got 'invalid'"), exception_msg)
+    assert re.search(re.compile("\"_userName\"] and has 'name' property which must be valid name"), exception_msg)
+    assert re.search(re.compile("\"_userName\"] and has 'mutability' property which must be .* but got 'invalid'"), exception_msg)
 
 
 def test_binary_attribute_validate():

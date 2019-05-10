@@ -1,12 +1,25 @@
 # -*- coding: utf-8 -*-
-
 # Schema / Model exceptions
+
+import json
+
+
+class JSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, set):
+            return json.dumps(list(obj), cls=JSONEncoder)
+        else:
+            return super(JSONEncoder, self).default(obj)
+
+
+def as_json(d):
+    return json.dumps(d, cls=JSONEncoder).strip('"')
 
 
 class AggregatedScimSchemaExceptions(AssertionError):
     def __init__(self, location, exceptions):
         msg = "Invalid SCIM schema {}: {} aggregated exceptions found: \n {}".format(
-            location, len(exceptions), "\n\t".join([
+            as_json(location), len(exceptions), "\n\t".join([
                 "{}: \n \t {}".format(e.__class__.__name__, str(e))
                 for e in exceptions
             ])
@@ -17,7 +30,7 @@ class AggregatedScimSchemaExceptions(AssertionError):
 class AggregatedScimMultValueAttributeValidationExceptions(AssertionError):
     def __init__(self, location, exceptions):
         msg = "Found {} aggregated exceptions at {}: \n {}".format(
-            len(exceptions), location, "\n\t".join([
+            len(exceptions), as_json(location), "\n\t".join([
                 "{}: \n \t {}".format(e.__class__.__name__, str(e))
                 for e in exceptions
             ])
@@ -38,7 +51,11 @@ class ModelInvalidPropertyException(AssertionError):
         msg =\
             "Model schema id {} has property {}" \
             " which is expected to be {} but got ""{}"" ({})".format(
-                id, property_name, expected, actual, reference
+                as_json(id),
+                as_json(property_name),
+                as_json(expected),
+                as_json(actual),
+                as_json(reference),
             )
         super(ModelInvalidPropertyException, self).__init__(msg)
 
@@ -47,7 +64,9 @@ class ModelAttributeUnknownPropertyException(AssertionError):
     def __init__(self, attribute_name, locator, info):
         super(ModelAttributeUnknownPropertyException, self).__init__(
             "Unknown properties {} on attribute '{} (path: '{}''".format(
-                info, attribute_name, locator
+                as_json(info),
+                as_json(attribute_name),
+                as_json(locator),
             )
         )
 
@@ -57,7 +76,10 @@ class ModelAttributeCharacteristicNotAllowedException(AssertionError):
         msg = \
             "Attribute ""{}"" and " \
             "has '{}' property which must be {} but got '{}' (https://tools.ietf.org/html/rfc7643#section-2.1)".format(
-                locator_path, attribute_name, expected, actual
+                as_json(locator_path),
+                as_json(attribute_name),
+                as_json(expected),
+                as_json(actual),
             )
         super(ModelAttributeCharacteristicNotAllowedException,
               self).__init__(msg)
@@ -71,7 +93,12 @@ class ScimAttributeValueNotFoundException(AssertionError):
         mv_attribute = "Single-value attribute" if not multi_value else "Multi-value attribute"
         super(ScimAttributeValueNotFoundException, self).__init__(
             "'{}:{}' is required at the following location '{}' but found '{}'"
-            .format(mv_attribute, attribute_name, locator, d)
+            .format(
+                as_json(mv_attribute),
+                as_json(attribute_name),
+                as_json(locator),
+                as_json(d),
+            )
         )
 
 
