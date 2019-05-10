@@ -1,22 +1,18 @@
 # -*- coding: utf-8 -*-
-from scimschema._model.scim_exceptions import AggregatedScimMultValueAttributeValidationExceptions
+from scimschema._model.scim_exceptions import (  # isort:skip
+    AggregatedScimMultValueAttributeValidationExceptions,
+)
 
 
 class ScimResponse(dict):
-    def __init__(
-            self,
-            data,
-            core_schema_definitions,
-            extension_schema_definitions,
-    ):
+    def __init__(self, data, core_schema_definitions, extension_schema_definitions):
 
         super(ScimResponse, self).__init__()
         for key in data.keys():
             self[key] = data[key]
 
         self._core_meta_schemas, self._extension_schema_definitions = self._get_meta_schemas(
-            core_schema_definitions,
-            extension_schema_definitions,
+            core_schema_definitions, extension_schema_definitions
         )
         if len(self._core_meta_schemas) != 1:
             raise AssertionError(
@@ -25,14 +21,10 @@ class ScimResponse(dict):
                 )
             )
 
-    def _get_meta_schemas(
-            self,
-            core_schema_definitions,
-            extension_schema_definitions,
-    ):
+    def _get_meta_schemas(self, core_schema_definitions, extension_schema_definitions):
         schema_names = self.get("schemas")
 
-        if schema_names is None or len(schema_names) == 0:
+        if schema_names is None or not schema_names:
             raise AssertionError("Response has no specified schema")
 
         core_meta_schemas = [
@@ -64,7 +56,7 @@ class ScimResponse(dict):
             except AssertionError as ae:
                 exceptions.append(ae)
 
-        if len(exceptions) > 0:
+        if exceptions:
             raise AggregatedScimMultValueAttributeValidationExceptions(
                 location="Scim response", exceptions=exceptions
             )

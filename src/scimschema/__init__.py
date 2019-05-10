@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from scimschema import core_schemas
 from scimschema._model import attribute
 from scimschema._model import model
@@ -12,7 +13,7 @@ def validate(data, extension_schema_definitions=None):
     ScimResponse(
         data=data,
         core_schema_definitions=core_schemas.schema,
-        extension_schema_definitions=extension_schema_definitions
+        extension_schema_definitions=extension_schema_definitions,
     ).validate()
 
 
