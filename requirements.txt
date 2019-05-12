@@ -1,3 +1,13 @@
+black
+coveralls
+eradicate
+isort
+pylama
+pylint
+pyopenssl
 pytest
+pytest-runner
 setuptools
-twine
+setuptools-scm
+urllib3==1.24.1
+zest.releaser [recommended]

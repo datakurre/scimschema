@@ -1,7 +1,16 @@
-import re
+# -*- coding: utf-8 -*-
 import json
-from .attribute import AttributeFactory
-from . import scim_exceptions
+import re
+import sys
+
+from scimschema._model import scim_exceptions
+from scimschema._model.attribute import AttributeFactory
+
+
+if sys.version_info[0] > 2:
+    text_type = str
+else:
+    text_type = unicode  # noqa
 
 
 class Model(object):
@@ -21,7 +30,10 @@ class Model(object):
 
         if attributes:
             self.attributes = [
-                AttributeFactory().create(d=d, locator_path=[self.id], is_parent_multi_valued=False) for d in attributes
+                AttributeFactory().create(
+                    d=d, locator_path=[self.id], is_parent_multi_valued=False
+                )
+                for d in attributes
             ]
 
         exceptions = []
@@ -31,10 +43,12 @@ class Model(object):
             exceptions.append(ae)
 
         if schema_data != {}:
-            e = AssertionError("Unexpected properties found: {}".format(schema_data.keys()))
+            e = AssertionError(
+                "Unexpected properties found: {}".format(schema_data.keys())
+            )
             exceptions.append(e)
 
-        if len(exceptions) > 0:
+        if exceptions:
             raise scim_exceptions.AggregatedScimMultValueAttributeValidationExceptions(
                 location=self.id, exceptions=exceptions
             )
@@ -62,7 +76,7 @@ class Model(object):
         except AssertionError as ae:
             exceptions.append(ae)
 
-        if len(exceptions) > 0:
+        if exceptions:
             raise scim_exceptions.AggregatedScimSchemaExceptions(self.id, exceptions)
 
     def _validate_schema_id(self):
@@ -72,33 +86,35 @@ class Model(object):
                 property_name="id",
                 expected="not None",
                 actual="None",
-                reference="https://tools.ietf.org/html/rfc7643#section-7"
+                reference="https://tools.ietf.org/html/rfc7643#section-7",
             )
 
     def _validate_schema_name(self):
         if self.name is None:
-            # OPTIONAL for scim schema - mandatory for service providers overriden via inheritance
+            # OPTIONAL for scim schema - mandatory for service providers
+            # overriden via inheritance
             return
 
-        if not bool(re.match('^[a-zA-Z]*(\$|-|_|\w)$', self.name)):
+        if not bool(re.match(r"^[a-zA-Z]*(\$|-|_|\w)$", self.name)):
             raise scim_exceptions.ModelInvalidPropertyException(
                 id=self.id,
                 property_name="name",
                 expected="a valid name - "
-                         "must be ALPHA * {{nameChar}} where nameChar   = \"$\" / \"-\" / \"_\" / DIGIT / ALPHA",
-                actual=self.name
+                "must be ALPHA * {{nameChar}} where nameChar "
+                '= "$" / "-" / "_" / DIGIT / ALPHA',
+                actual=self.name,
             )
 
     def _validate_schema_description(self):
         if self.description is None:
             return
 
-        if not isinstance(self.description, str):
+        if not isinstance(self.description, (str, text_type)):
             raise scim_exceptions.ModelInvalidPropertyException(
                 id=self.id,
                 property_name="description",
                 expected="a non-string description",
-                actual=self.description
+                actual=self.description,
             )
 
     def _validate_schema_attributes(self):
@@ -108,7 +124,7 @@ class Model(object):
                 attribute.validate_schema()
             except AssertionError as ae:
                 exceptions.append(ae)
-        if len(exceptions) > 0:
+        if exceptions:
             raise scim_exceptions.AggregatedScimMultValueAttributeValidationExceptions(
                 location=self.id, exceptions=exceptions
             )
@@ -120,23 +136,27 @@ class Model(object):
 
 
 class MetaServiceProviderSchema(Model):
-
     def _validate_schema_name(self):
-        if self.name is None or not bool(re.match(self.name, '^[\w]*(\$|\-|_|\d|\w)$')):
+        if self.name is None or not bool(
+            re.match(self.name, r"^[\w]*(\$|\-|_|\d|\w)$")
+        ):
             raise scim_exceptions.ModelInvalidPropertyException(
                 id=self.id,
                 property_name="name",
-                expected="meta schema: {}-{}- name must be "
-                         "LPHA * {nameChar} where nameChar   = \"$\" / \"-\" / \"_\" / DIGIT / ALPHA",
-                actual=self.name
+                expected="meta schema: {}-{}- name must be ALPHA * {"
+                'nameChar} where nameChar = "$" / "-" / "_" / '
+                "DIGIT / ALPHA",
+                actual=self.name,
             )
 
     def _validate_schema_description(self):
-        if self.description is None or not isinstance(self.description, str):
+        if self.description is None or not isinstance(
+            self.description, (str, text_type)
+        ):
             raise scim_exceptions.ModelInvalidPropertyException(
                 id=self.id,
                 property_name="description",
                 expected="service providers MUST specify the description",
                 actual=self.description,
-                reference="https://tools.ietf.org/html/rfc7643#section-6"
+                reference="https://tools.ietf.org/html/rfc7643#section-6",
             )
