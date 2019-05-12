@@ -591,11 +591,16 @@ self: super: {
     name = "zest.releaser-6.18.2";
     doCheck = false;
     propagatedBuildInputs = [
+      self."chardet"
+      self."check-manifest"
       self."colorama"
+      self."pyroma"
+      self."readme-renderer"
       self."requests"
       self."setuptools"
       self."six"
       self."twine"
+      self."wheel"
     ];
     src = fetchurl {
       url = "https://files.pythonhosted.org/packages/54/4a/0d9f3eac02cda49fff11d583ed4f0a943751e3270c6ebf1f9c1a14abcac5/zest.releaser-6.18.2.tar.gz";
