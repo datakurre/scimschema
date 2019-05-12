@@ -481,11 +481,11 @@ self: super: {
     };
   };
   "setuptools-scm" = super.buildPythonPackage {
-    name = "setuptools-scm-3.3.1";
+    name = "setuptools-scm-3.3.3";
     doCheck = false;
     src = fetchurl {
-      url = "https://files.pythonhosted.org/packages/90/5d/a822911555aad367f24c3fd3019619b2906fc6aa52cc1784b8902d880c20/setuptools_scm-3.3.1.tar.gz";
-      sha256 = "0i7qf91pjr9pvbjlql280rj849v725dpllfyvf24xs9kxcki3c71";
+      url = "https://files.pythonhosted.org/packages/83/44/53cad68ce686585d12222e6769682c4bdb9686808d2739671f9175e2938b/setuptools_scm-3.3.3.tar.gz";
+      sha256 = "19cyndx23xmpbhz4qrwmfwsmnnaczd0dw7qg977ksq2dbvxy29dx";
     };
   };
   "singledispatch" = super.buildPythonPackage {
@@ -591,16 +591,11 @@ self: super: {
     name = "zest.releaser-6.18.2";
     doCheck = false;
     propagatedBuildInputs = [
-      self."chardet"
-      self."check-manifest"
       self."colorama"
-      self."pyroma"
-      self."readme-renderer"
       self."requests"
       self."setuptools"
       self."six"
       self."twine"
-      self."wheel"
     ];
     src = fetchurl {
       url = "https://files.pythonhosted.org/packages/54/4a/0d9f3eac02cda49fff11d583ed4f0a943751e3270c6ebf1f9c1a14abcac5/zest.releaser-6.18.2.tar.gz";

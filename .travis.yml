@@ -7,3 +7,4 @@ script: make $TARGET
 env:
 - PYTHON=python2 TARGET="nix-test"
 - PYTHON=python3 TARGET="nix-test"
+after_success: make nix-coveralls

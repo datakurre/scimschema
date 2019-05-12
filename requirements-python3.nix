@@ -20,6 +20,14 @@ self: super: {
       sha256 = "14id6wxi12lgyw0mg3bcfnf888ad07jz9yj46gfzhn186z8rcn4y";
     };
   };
+  "asn1crypto" = super.buildPythonPackage {
+    name = "asn1crypto-0.24.0";
+    doCheck = false;
+    src = fetchurl {
+      url = "https://files.pythonhosted.org/packages/fc/f1/8db7daa71f414ddabfa056c4ef792e1461ff655c2ae2928a2b675bfed6b4/asn1crypto-0.24.0.tar.gz";
+      sha256 = "0jaf8rf9dx1lf23xfv2cdd5h52f1qr3w8k63985bc35g3d220p4x";
+    };
+  };
   "astroid" = super.buildPythonPackage {
     name = "astroid-2.2.5";
     doCheck = false;
@@ -84,6 +92,17 @@ self: super: {
       sha256 = "1bnpw7hrf9i1l9gfxjnzi45hkrvzz0pyn9ia8m4mw7sxhgb08qdj";
     };
   };
+  "cffi" = super.buildPythonPackage {
+    name = "cffi-1.12.3";
+    doCheck = false;
+    propagatedBuildInputs = [
+      self."pycparser"
+    ];
+    src = fetchurl {
+      url = "https://files.pythonhosted.org/packages/93/1a/ab8c62b5838722f29f3daffcc8d4bd61844aa9b5f437341cc890ceee483b/cffi-1.12.3.tar.gz";
+      sha256 = "0x075521fxwv0mfp4cqzk7lvmw4n94bjw601qkcv314z5s182704";
+    };
+  };
   "chardet" = super.buildPythonPackage {
     name = "chardet-3.0.4";
     doCheck = false;
@@ -138,6 +157,19 @@ self: super: {
     src = fetchurl {
       url = "https://files.pythonhosted.org/packages/af/76/5592d2757487de97d64865d9eb586046820ac90681a63137a40bfe20d650/coveralls-1.7.0.tar.gz";
       sha256 = "10gdzyik8fzx9x8y10r0myx0dl01l81bnds8cmpz4w2hn4ipi6zz";
+    };
+  };
+  "cryptography" = super.buildPythonPackage {
+    name = "cryptography-2.6.1";
+    doCheck = false;
+    propagatedBuildInputs = [
+      self."asn1crypto"
+      self."cffi"
+      self."six"
+    ];
+    src = fetchurl {
+      url = "https://files.pythonhosted.org/packages/07/ca/bc827c5e55918ad223d59d299fff92f3563476c3b00d0a9157d9c0217449/cryptography-2.6.1.tar.gz";
+      sha256 = "19iwz5avym5zl6jrrrkym1rdaa9h61j20ph4cswsqgv8xg5j3j16";
     };
   };
   "docopt" = super.buildPythonPackage {
@@ -236,6 +268,14 @@ self: super: {
       sha256 = "0v4prb05n21bm8650v0a01k1nyqjdmkrsm3zycfxh2j5k9n962p4";
     };
   };
+  "pycparser" = super.buildPythonPackage {
+    name = "pycparser-2.19";
+    doCheck = false;
+    src = fetchurl {
+      url = "https://files.pythonhosted.org/packages/68/9e/49196946aee219aead1290e00d1e7fdeab8567783e83e1b9ab5585e6206a/pycparser-2.19.tar.gz";
+      sha256 = "1cr5dcj9628lkz1qlwq3fv97c25363qppkmcayqvd05dpy573259";
+    };
+  };
   "pydocstyle" = super.buildPythonPackage {
     name = "pydocstyle-3.0.0";
     doCheck = false;
@@ -281,6 +321,18 @@ self: super: {
     src = fetchurl {
       url = "https://files.pythonhosted.org/packages/01/8b/538911c0ebc2529f15004f4cb07e3ca562bb9aacea5df89cc25b62e01891/pylint-2.3.1.tar.gz";
       sha256 = "1wgzq0da87m7708hrc9h4bc5m4z2p7379i4xyydszasmjns3sgkj";
+    };
+  };
+  "pyopenssl" = super.buildPythonPackage {
+    name = "pyopenssl-19.0.0";
+    doCheck = false;
+    propagatedBuildInputs = [
+      self."cryptography"
+      self."six"
+    ];
+    src = fetchurl {
+      url = "https://files.pythonhosted.org/packages/40/d0/8efd61531f338a89b4efa48fcf1972d870d2b67a7aea9dcf70783c8464dc/pyOpenSSL-19.0.0.tar.gz";
+      sha256 = "007j40y7x3k8xj54dy2qnij9lldfp71k9mkflhd9vqbdiwrndjmf";
     };
   };
   "pyroma" = super.buildPythonPackage {
@@ -372,11 +424,11 @@ self: super: {
     };
   };
   "setuptools-scm" = super.buildPythonPackage {
-    name = "setuptools-scm-3.3.1";
+    name = "setuptools-scm-3.3.3";
     doCheck = false;
     src = fetchurl {
-      url = "https://files.pythonhosted.org/packages/90/5d/a822911555aad367f24c3fd3019619b2906fc6aa52cc1784b8902d880c20/setuptools_scm-3.3.1.tar.gz";
-      sha256 = "0i7qf91pjr9pvbjlql280rj849v725dpllfyvf24xs9kxcki3c71";
+      url = "https://files.pythonhosted.org/packages/83/44/53cad68ce686585d12222e6769682c4bdb9686808d2739671f9175e2938b/setuptools_scm-3.3.3.tar.gz";
+      sha256 = "19cyndx23xmpbhz4qrwmfwsmnnaczd0dw7qg977ksq2dbvxy29dx";
     };
   };
   "six" = super.buildPythonPackage {
@@ -479,16 +531,11 @@ self: super: {
     name = "zest.releaser-6.18.2";
     doCheck = false;
     propagatedBuildInputs = [
-      self."chardet"
-      self."check-manifest"
       self."colorama"
-      self."pyroma"
-      self."readme-renderer"
       self."requests"
       self."setuptools"
       self."six"
       self."twine"
-      self."wheel"
     ];
     src = fetchurl {
       url = "https://files.pythonhosted.org/packages/54/4a/0d9f3eac02cda49fff11d583ed4f0a943751e3270c6ebf1f9c1a14abcac5/zest.releaser-6.18.2.tar.gz";

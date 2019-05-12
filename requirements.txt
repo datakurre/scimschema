@@ -1,10 +1,9 @@
-#black
-coverage
+black
 coveralls
 eradicate
 isort
-pylint
 pylama
+pylint
 pyopenssl
 pytest
 pytest-runner

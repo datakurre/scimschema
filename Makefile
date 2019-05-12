@@ -3,6 +3,18 @@ PYTHON ?= python3
 .PHONY: all
 all: test
 
+.PHONY: .coverage
+.coverage:
+	coverage run setup.py test
+
+.PHONY: coverage
+coverage: .coverage
+	coverage report --fail-under=40
+
+.PHONY: coveralls
+coveralls: .coverage
+	coveralls
+
 .PHONY: test
 test:
 ifeq ($(PYTHON), python3)
@@ -36,6 +48,10 @@ requirements-$(PYTHON).nix: requirements.txt
 	--run "pip2nix generate -r requirements.txt \
 	--output=requirements-$(PYTHON).nix"'
 	@grep "name" requirements-$(PYTHON).nix |grep -Eo "\"(.*)\""|grep -Eo "[^\"]+"|sed -r "s|-([0-9\.]+)|==\1|g">requirements-$(PYTHON).txt
+	@nix-shell -p libffi \
+	--run 'nix-shell setup.nix -A pip2nix --argstr python $(PYTHON) \
+	--run "pip2nix generate -r requirements-$(PYTHON).txt \
+	--output=requirements-$(PYTHON).nix"'
 
 .PHONY: setup.nix
 setup.nix:
