@@ -7,8 +7,12 @@
 
 ScimSchema
 ==========
-.. image:: https://travis-ci.org/GordonSo/scimschema.svg?branch=master
-    :target: https://travis-ci.org/GordonSo/scimschema
+
+.. image:: https://travis-ci.org/datakurre/scimschema.svg?branch=master
+   :target: https://travis-ci.org/datakurre/scimschema
+
+.. image:: https://coveralls.io/repos/github/datakurre/scimschema/badge.svg?branch=master
+   :target: https://coveralls.io/github/datakurre/scimschema?branch=master
 
 Validate JSon content given a predefined set of SCIM Schemas (in JSON representation format) as specified in `SCIM <http://www.simplecloud.info/>`_ (supporting Python 3+).
 
