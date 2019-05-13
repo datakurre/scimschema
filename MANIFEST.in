@@ -1,0 +1,4 @@
+graft src/scimschema
+graft tests
+include setup.* *.rst *.nix
+global-exclude *.pyc
