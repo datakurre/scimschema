@@ -1,4 +1,5 @@
 graft src/scimschema
 graft tests
-include setup.* *.rst *.nix
+include LICENSE setup.* *.rst *.png *.nix
 global-exclude *.pyc
+exclude .editorconfig Makefile *.ini *.bat *.txt *.svg
